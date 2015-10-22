@@ -1,0 +1,184 @@
+<div id="omit2Pager"></div>
+
+<script type="text/javascript">
+
+require(['jquery'], function () {
+
+    buildUrl = function(objs) {
+        var result = '';
+        var x = 0;
+        for (var k in objs) {
+            v = objs[k];
+            if (x == 0) {
+                result = result + k + '=' + encodeURIComponent(v);
+            } else {
+                result = result + '&' + k + '=' + encodeURIComponent(v);
+            }
+            x++;
+        }
+        return result;
+    }
+
+    buildHrefLink = function(defaults, pageIndex) {
+        $.extend(defaults.currentParams, {'page': pageIndex});
+        return defaults.currentUrl + '?' + buildUrl(defaults.currentParams);
+    }
+
+    $.fn.extendPagination = function (options) {
+        var defaults = {
+            totalCount : '0',
+            showPage : '10',
+            pageSize : '5',
+            pageIndex : '1',
+            currentUrl : '/',
+            currentParams : {},
+        };
+        $.extend(defaults, options || {});
+        var pindex = parseInt(defaults.pageIndex);
+
+        //console.log(defaults);
+
+        if (defaults.totalCount == '') {
+            //console.log('总数不能为空!');
+            $(this).empty();
+            return false;
+        } else if (Number(defaults.totalCount) <= 0) {
+            //console.log('总数要大于0!');
+            $(this).empty();
+            return false;
+        }
+
+        if (defaults.showPage == '') {
+            defaults.showPage = '10';
+        } else if (Number(defaults.showPage) <= 0) {
+            defaults.showPage = '10';
+        }
+
+        if (defaults.pageSize == '') {
+            defaults.pageSize = '5';
+        } else if (Number(defaults.pageSize) <= 0) {
+            defaults.pageSize = '5';
+        }
+
+        var totalCount = Number(defaults.totalCount),
+            showPage = Number(defaults.showPage),
+            pageSize = Number(defaults.pageSize),
+            totalPage = Math.ceil(totalCount / pageSize);
+
+        if (totalPage > 0) {
+            var html = [];
+
+            html.push(' <ul class="pagination">');
+
+            if (pindex == 1) {
+                html.push(' <li class="previous"><a href="javascript:void(0);">&laquo;</a></li>');
+            } else {
+                var alink = buildHrefLink(defaults, pindex - 1);
+                html.push(' <li class="previous"><a href="' + alink + '">&laquo;</a></li>');
+            }
+
+            html.push('<li class="disabled hidden"><a href="javascript:void(0);">...</a></li>');
+
+            if (totalPage % 2 == 0) {
+                var medianCheck = (totalPage / 2 + 1) < showPage;
+            } else {
+                var medianCheck = Math.ceil(totalPage / 2) < showPage;
+            }
+
+            if (totalPage <= showPage) {
+
+                for (var i = 1; i <= totalPage; i++) {
+                    var alink = buildHrefLink(defaults, i);
+                    if (i == pindex) {
+                        html.push(' <li class="active"><a href="' + alink + '">' + i + '</a></li>');
+                    } else {
+                        html.push(' <li><a href="' + alink + '">' + i + '</a></li>');
+                    }
+                }
+
+            } else if (medianCheck && totalPage > showPage) {
+
+                for (var i = 1; i <= totalPage; i++) {
+                    var alink = buildHrefLink(defaults, i);
+                    if (i == pindex) {
+                        html.push(' <li class="active"><a href="' + alink + '">' + i + '</a></li>');
+                    } else {
+                        html.push(' <li><a href="' + alink + '">' + i + '</a></li>');
+                    }
+                }
+
+            } else {
+
+                if (pindex >= showPage && pindex <= totalPage - showPage + 1) {
+
+                    var delta = parseInt(showPage / 2);
+                    for (var i = pindex - delta; i <= pindex + delta; i++) {
+                        var alink = buildHrefLink(defaults, i);
+                        if (i == pindex) {
+                          html.push(' <li class="active"><a href="' + alink + '">' + i + '</a></li>');
+                        } else {
+                          html.push(' <li><a href="' + alink + '">' + i + '</a></li>');
+                        }
+                    }
+
+                } else {
+
+                    if (pindex < showPage) {
+
+                        for (var i = 1; i <= showPage; i++) {
+                            var alink = buildHrefLink(defaults, i);
+                            if (i == pindex) {
+                                html.push(' <li class="active"><a href="' + alink + '">' + i + '</a></li>');
+                            } else {
+                                html.push(' <li><a href="' + alink + '">' + i + '</a></li>');
+                            }
+                        }
+
+                    } else if (pindex > totalPage - showPage + 1) {
+
+                        for (var i = totalPage - showPage + 1; i <= totalPage; i++) {
+                            var alink = buildHrefLink(defaults, i);
+                            if (i == pindex) {
+                                html.push(' <li class="active"><a href="' + alink + '">' + i + '</a></li>');
+                            } else {
+                                html.push(' <li><a href="' + alink + '">' + i + '</a></li>');
+                            }
+                        }
+
+                    }
+
+                }
+
+            }
+
+            html.push('<li class="disabled hidden"><a href="javascript:void(0);">...</a></li>');
+
+            if (pindex == totalPage) {
+                html.push('<li class="next"><a href="javascript:void(0);">&raquo;</a></li></ul>');
+            } else {
+                var alink = buildHrefLink(defaults, pindex + 1);
+                html.push('<li class="next"><a href="' + alink + '">&raquo;</a></li></ul>');
+            }
+
+            $(this).html(html.join(''));
+
+            if (!medianCheck && totalPage > showPage) {
+                //console.log(totalPage);
+                //console.log(showPage);
+
+                if (pindex != totalPage && pindex <= totalPage - showPage + 1) {
+                    $(this).find('ul.pagination li.next').prev().removeClass('hidden');
+                }
+                if (pindex != 1 && pindex >= showPage) {
+                    $(this).find('ul.pagination li.previous').next().removeClass('hidden');
+                }
+            }
+
+        }
+
+    }
+
+});
+
+</script>
+
